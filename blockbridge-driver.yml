@@ -1,0 +1,28 @@
+version: '2'
+
+services:
+  blockbridge-volume-driver:
+    image: blockbridge/volume-driver
+    privileged: true
+    volumes:
+      - /proc/1/ns:/ns-net
+      - /proc/1/ns:/ns-mnt
+      - /lib/modules:/lib/modules
+      - /etc/iscsi:/etc/iscsi
+      - blockbridge-volumes:/bb/volumes
+      - /bb/env:/bb/env
+      - /var/run/docker/plugins/blockbridge:/run/docker/plugins/blockbridge
+      - /var/run/docker.sock:/run/docker.sock
+    networks:
+      - storage
+    environment:
+      BLOCKBRIDGE_API_HOST: blockbridge-storage-backend
+    labels:
+      com.docker.swarm.affinities: '["container!=*blockbridge-volume-driver*"]'
+
+volumes:
+  blockbridge-volumes:
+
+networks:
+  storage:
+    driver: overlay

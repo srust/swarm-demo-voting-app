@@ -10,12 +10,21 @@ services:
     labels:
       com.docker.swarm.reschedule-policies: '["on-node-failure"]'
 
+  result-app:
+    image: vieux/demo-result
+    ports:
+      - "80"
+    networks:
+      - result
+    labels:
+      com.docker.swarm.reschedule-policies: '["on-node-failure"]'
+
   redis:
     image: redis:alpine
     networks:
       - vote
     labels:
-      com.docker.swarm.constraints: '["node==node-1"]'
+      com.docker.swarm.reschedule-policies: '["on-node-failure"]'
 
   worker:
     image: vieux/demo-worker
@@ -29,20 +38,21 @@ services:
     networks:
       - vote
       - result
-    labels:
-      com.docker.swarm.constraints: '["node==node-1"]'
-
-  result-app:
-    image: vieux/demo-result
-    ports:
-      - "80"
-    networks:
-      - result
+      - storage
+    volumes:
+      - "db-data:/var/lib/postgresql/data"
     labels:
       com.docker.swarm.reschedule-policies: '["on-node-failure"]'
+      com.docker.swarm.affinities: '["container==*blockbridge-volume-driver*"]'
+
+volumes:
+  db-data:
+    driver: blockbridge
 
 networks:
   vote:
     driver: overlay
   result:
+    driver: overlay
+  storage:
     driver: overlay
